@@ -24,7 +24,6 @@ using namespace std;
 using namespace cv;
 using namespace cv::detail;
 
-// Default command line args
 bool preview = false;
 bool try_cuda = false;
 double work_megapix = 0.6;
@@ -40,7 +39,7 @@ bool do_wave_correct = true;
 WaveCorrectKind wave_correct = detail::WAVE_CORRECT_HORIZ;
 bool save_graph = false;
 std::string save_graph_to;
-string warp_type = "spherical";
+string warp_type = "fisheye";
 int expos_comp_type = ExposureCompensator::GAIN_BLOCKS;
 float match_conf = 0.3f;
 string seam_find_type = "gc_color";
@@ -52,7 +51,6 @@ bool timelapse = false;
 int range_width = -1;
 
 vector<CameraParams> callibrate(vector<Mat> rawImages) {
-    // Check if have enough images
     int num_images = static_cast<int>(rawImages.size());
 
     double work_scale = 1, seam_scale = 1;
@@ -132,29 +130,6 @@ vector<CameraParams> callibrate(vector<Mat> rawImages) {
 
     LOGLN("Pairwise matching, time: " << ((getTickCount() - t) / getTickFrequency()) << " sec");
 
-    // Check if we should save matches graph
-    //    if (save_graph) {
-    //        LOGLN("Saving matches graph...");
-    //        ofstream f(save_graph_to.c_str());
-    //        f << matchesGraphAsString(img_names, pairwise_matches, conf_thresh);
-    //    }
-
-    // Leave only images we are sure are from the same panorama
-    //    vector<int> indices = leaveBiggestComponent(features, pairwise_matches, conf_thresh);
-    //    vector<Mat> img_subset;
-    //    vector<String> img_names_subset;
-    //    vector<Size> full_img_sizes_subset;
-    //    for (size_t i = 0; i < indices.size(); ++i) {
-    //        img_names_subset.push_back(img_names[indices[i]]);
-    //        img_subset.push_back(images[indices[i]]);
-    //        full_img_sizes_subset.push_back(full_img_sizes[indices[i]]);
-    //    }
-
-    //    //    images = img_subset;
-    //    img_names = img_names_subset;
-    //    full_img_sizes = full_img_sizes_subset;
-
-    // Check if we still have enough images
     num_images = static_cast<int>(rawImages.size());
 
     Ptr<Estimator> estimator;
@@ -236,7 +211,6 @@ Mat stitch(const vector<Mat> &rawImages, vector<CameraParams> cameras) {
     int64 app_start_time = getTickCount();
 #endif
 
-    // Check if have enough images
     int num_images = static_cast<int>(rawImages.size());
 
     double work_scale = 1, seam_scale = 1, compose_scale = 1;
@@ -318,45 +292,16 @@ Mat stitch(const vector<Mat> &rawImages, vector<CameraParams> cameras) {
 
     LOGLN("Pairwise matching, time: " << ((getTickCount() - t) / getTickFrequency()) << " sec");
 
-    // Check if we should save matches graph
-    //    if (save_graph) {
-    //        LOGLN("Saving matches graph...");
-    //        ofstream f(save_graph_to.c_str());
-    //        f << matchesGraphAsString(img_names, pairwise_matches, conf_thresh);
-    //    }
-
-    // Leave only images we are sure are from the same panorama
-    //    vector<int> indices = leaveBiggestComponent(features, pairwise_matches, conf_thresh);
-    //    vector<Mat> img_subset;
-    //    vector<String> img_names_subset;
-    //    vector<Size> full_img_sizes_subset;
-    //    for (size_t i = 0; i < indices.size(); ++i) {
-    //        img_names_subset.push_back(img_names[indices[i]]);
-    //        img_subset.push_back(images[indices[i]]);
-    //        full_img_sizes_subset.push_back(full_img_sizes[indices[i]]);
-    //    }
-
-    //    images = img_subset;
-    //    img_names = img_names_subset;
-    //    full_img_sizes = full_img_sizes_subset;
-
-    // Check if we still have enough images
     num_images = static_cast<int>(rawImages.size());
 
-    Ptr<Estimator> estimator;
-    if (estimator_type == "affine")
-        estimator = makePtr<AffineBasedEstimator>();
-    else
-        estimator = makePtr<HomographyBasedEstimator>();
-
-    for (size_t i = 0; i < cameras.size(); ++i) {
-        Mat R;
-        cameras[i].R.convertTo(R, CV_32F);
-        cameras[i].R = R;
-        LOGLN("Initial camera intrinsics #" << i + 1 << ":\nK:\n"
-                                            << cameras[i].K() << "\nR:\n"
-                                            << cameras[i].R);
-    }
+    //    for (size_t i = 0; i < cameras.size(); ++i) {
+    //        Mat R;
+    //        cameras[i].R.convertTo(R, CV_32F);
+    //        cameras[i].R = R;
+    //        LOGLN("Initial camera intrinsics #" << i + 1 << ":\nK:\n"
+    //                                            << cameras[i].K() << "\nR:\n"
+    //                                            << cameras[i].R);
+    //    }
 
     Ptr<detail::BundleAdjusterBase> adjuster;
     if (ba_cost_func == "reproj")
@@ -657,7 +602,7 @@ int main() {
     vector<Mat> images;
 
     for (size_t i = 0; i < imgCount; i++)
-        images.push_back(imread("data/boat" + std::to_string(i + 1) + ".jpg"));
+        images.push_back(imread("imgs/img" + std::to_string(i + 1) + ".jpg"));
 
     vector<CameraParams> cameras = callibrate(images);
     Mat result = stitch(images, cameras);
