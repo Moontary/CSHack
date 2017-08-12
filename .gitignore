@@ -1,0 +1,9 @@
+CMakeFiles/
+CMakeCache.txt
+*.cbp
+*.cmake
+*.autosave
+Makefile
+*.user
+stitcher
+stitching_detailed
