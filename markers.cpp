@@ -71,6 +71,7 @@ int main(int argc, char *argv[]){
         double a = 4*((double)size)/sprite.cols;
         int x = (minX + maxX)/2 - sprite.cols*a/2;
         int y = (minY + maxY)/2 - sprite.rows*a/2;
+        std::cout<<x<<"  "<<y<<"  "<<a<<"\n";
         drawSprite(img, sprite, x, y, a);
     }
 
