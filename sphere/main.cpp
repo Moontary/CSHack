@@ -176,6 +176,10 @@ void drawScene() {
     glRotatef(90, 0.0f, 1.0f, 0.0f);
     glRotatef(0, 0.0f, 0.0f, 1.0f);
 
+    glRotatef(yAngle, 1.0f, 0.0f, 0.0f);
+    // glRotatef(zAngle, 0.0f, 1.0f, 0.0f);
+    glRotatef(xAngle + 90, 0.0f, 1.0f, 0.0f);
+
     float scale = 1.0f / 50;
     glScalef(scale, scale, scale);
 
