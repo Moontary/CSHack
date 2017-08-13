@@ -143,10 +143,13 @@ void drawScene() {
         glViewport(i++ * (w / map.size()) + 3, 0, ww, h);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
+
         gluPerspective(50, (float) w / (float) h, 1.0, 200.0);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
+        glPushMatrix();
+
         glTranslatef(0.0f, 0.0f, 0.0f);
 
         mutex.lock();
@@ -158,64 +161,135 @@ void drawScene() {
 
         mutex.unlock();
 
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, isRaw ? rawTextureId : textureId);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
         gluQuadricTexture(quad, 1);
         gluSphere(quad, 100, 50, 50);
-    }
+        glPopMatrix();
 
-    glPushMatrix();
-    glLoadIdentity();
+        //--------------------------------------------
+        size_t face_i = 0;
+        for (auto dataFace : map) {
+            glPushMatrix();
+            glLoadIdentity();
 
-    glRotatef(90, 1.0f, 0.0f, 0.0f);
-    glRotatef(yAngle, 1.0f, 0.0f, 0.0f);
-    glRotatef(zAngle, 0.0f, 1.0f, 0.0f);
-    glRotatef(xAngle, 0.0f, 0.0f, 1.0f);
+            glRotatef(90, 1.0f, 0.0f, 0.0f);
+            glRotatef(data.yAngle, 1.0f, 0.0f, 0.0f);
+            glRotatef(data.zAngle, 0.0f, 1.0f, 0.0f);
+            glRotatef(-data.xAngle, 0.0f, 0.0f, 1.0f);
 
-    glTranslatef(25, 0, 0);
+            glTranslatef(face_i ? 25 : -25, 0, 0);
 
-    glRotatef(-90, 1.0f, 0.0f, 0.0f);
-    glRotatef(90, 0.0f, 1.0f, 0.0f);
-    glRotatef(0, 0.0f, 0.0f, 1.0f);
+            face_i++;
 
-    glRotatef(yAngle, 1.0f, 0.0f, 0.0f);
-    // glRotatef(zAngle, 0.0f, 1.0f, 0.0f);
-    glRotatef(xAngle + 90, 0.0f, 1.0f, 0.0f);
+            glRotatef(-90, 1.0f, 0.0f, 0.0f);
+            glRotatef(90, 0.0f, 1.0f, 0.0f);
+            glRotatef(0, 0.0f, 0.0f, 1.0f);
 
-    float scale = 1.0f / 50;
-    glScalef(scale, scale, scale);
+            glRotatef(dataFace.yAngle, 1.0f, 0.0f, 0.0f);
+            //glRotatef(data.zAngle, 0.0f, 1.0f, 0.0f);
+            glRotatef(dataFace.xAngle + 90, 0.0f, 1.0f, 0.0f);
 
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, sdobnikovTextureId);
+            float scale = 1.0f / 50;
+            glScalef(scale, scale, scale);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, sdobnikovTextureId);
 
-    for (tinyobj::shape_t shape : shapes) {
-        int currentIndex = 0;
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        for (unsigned char c : shape.mesh.num_face_vertices) {
-            assert(c == 3);
+            for (tinyobj::shape_t shape : shapes) {
+                int currentIndex = 0;
 
-            glBegin(GL_TRIANGLES);
+                for (unsigned char c : shape.mesh.num_face_vertices) {
+                    assert(c == 3);
 
-            for (size_t i = 0; i < c; i++) {
-                tinyobj::index_t index = shape.mesh.indices[currentIndex + i];
+                    glBegin(GL_TRIANGLES);
 
-                int vi = index.vertex_index;
-                int ni = index.normal_index;
-                int ti = index.texcoord_index;
+                    for (size_t i = 0; i < c; i++) {
+                        tinyobj::index_t index = shape.mesh.indices[currentIndex + i];
 
-                glVertex3f(attrib.vertices[3 * vi + 0], attrib.vertices[3 * vi + 1], attrib.vertices[3 * vi + 2]);
-                glNormal3f(attrib.normals[3 * ni + 0], attrib.normals[3 * ni + 1], attrib.normals[3 * ni + 2]);
-                glTexCoord2f(1 - attrib.texcoords[2 * ti + 0], 1 - attrib.texcoords[2 * ti + 1]);
+                        int vi = index.vertex_index;
+                        int ni = index.normal_index;
+                        int ti = index.texcoord_index;
+
+                        glVertex3f(attrib.vertices[3 * vi + 0], attrib.vertices[3 * vi + 1], attrib.vertices[3 * vi + 2]);
+                        glNormal3f(attrib.normals[3 * ni + 0], attrib.normals[3 * ni + 1], attrib.normals[3 * ni + 2]);
+                        glTexCoord2f(1 - attrib.texcoords[2 * ti + 0], 1 - attrib.texcoords[2 * ti + 1]);
+                    }
+
+                    glEnd();
+
+                    currentIndex += c;
+                }
             }
 
-            glEnd();
-
-            currentIndex += c;
+            glPopMatrix();
         }
     }
 
-    glPopMatrix();
+    if (map.empty()) {
+
+        glPushMatrix();
+        glLoadIdentity();
+
+        glRotatef(90, 1.0f, 0.0f, 0.0f);
+        glRotatef(yAngle, 1.0f, 0.0f, 0.0f);
+        glRotatef(zAngle, 0.0f, 1.0f, 0.0f);
+        glRotatef(xAngle, 0.0f, 0.0f, 1.0f);
+
+        glTranslatef(25, 0, 0);
+
+        glRotatef(-90, 1.0f, 0.0f, 0.0f);
+        glRotatef(90, 0.0f, 1.0f, 0.0f);
+        glRotatef(0, 0.0f, 0.0f, 1.0f);
+
+        glRotatef(yAngle, 1.0f, 0.0f, 0.0f);
+        // glRotatef(zAngle, 0.0f, 1.0f, 0.0f);
+        glRotatef(xAngle + 90, 0.0f, 1.0f, 0.0f);
+
+        float scale = 1.0f / 50;
+        glScalef(scale, scale, scale);
+
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, sdobnikovTextureId);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        for (tinyobj::shape_t shape : shapes) {
+            int currentIndex = 0;
+
+            for (unsigned char c : shape.mesh.num_face_vertices) {
+                assert(c == 3);
+
+                glBegin(GL_TRIANGLES);
+
+                for (size_t i = 0; i < c; i++) {
+                    tinyobj::index_t index = shape.mesh.indices[currentIndex + i];
+
+                    int vi = index.vertex_index;
+                    int ni = index.normal_index;
+                    int ti = index.texcoord_index;
+
+                    glVertex3f(attrib.vertices[3 * vi + 0], attrib.vertices[3 * vi + 1], attrib.vertices[3 * vi + 2]);
+                    glNormal3f(attrib.normals[3 * ni + 0], attrib.normals[3 * ni + 1], attrib.normals[3 * ni + 2]);
+                    glTexCoord2f(1 - attrib.texcoords[2 * ti + 0], 1 - attrib.texcoords[2 * ti + 1]);
+                }
+
+                glEnd();
+
+                currentIndex += c;
+            }
+        }
+
+        glPopMatrix();
+    }
 
     glutSwapBuffers();
 }
