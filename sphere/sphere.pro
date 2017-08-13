@@ -1,4 +1,4 @@
-QT += core gui widgets
+QT += core gui widgets network
 
 CONFIG += c++11
 
@@ -8,7 +8,13 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    tcpserver.cpp \
+    udpserver.cpp
+
+HEADERS += \
+    tcpserver.h \
+    udpserver.h
 
 LIBS += -lGL -lGLU -lglut
 

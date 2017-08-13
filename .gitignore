@@ -11,3 +11,6 @@ result.jpg
 sphere/sphere
 *.o
 *.stash
+moc_*.h
+moc_*.cpp
+markers
