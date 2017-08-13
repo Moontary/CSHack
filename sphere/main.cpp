@@ -64,24 +64,12 @@ GLuint textureId;
 GLUquadric *quad;
 
 GLuint rawTextureId;
-GLuint sdobnikovTextureId;
+GLuint sdobnikovTextureId, goncharukTextureId;
 
 void initialize() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glEnable(GL_COLOR_MATERIAL);
-
-    //    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-    //    GLfloat mat_shininess[] = { 50.0 };
-    //    GLfloat light_position[] = { 0.0, 0.0, -5.0, 0.0 };
-
-    //    glShadeModel(GL_SMOOTH);
-
-    //    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-    //    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-    //    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
-    //    glEnable(GL_LIGHTING);
 
     quad = gluNewQuadric();
 
@@ -93,6 +81,9 @@ void initialize() {
 
     QImage sdobnikovTexture = QImage("texture.jpg");
     sdobnikovTextureId = loadTexture(sdobnikovTexture);
+
+    QImage goncharukTexture = QImage("texture2.jpg");
+    goncharukTextureId = loadTexture(goncharukTexture);
 }
 
 int w, h;
@@ -171,7 +162,6 @@ void drawScene() {
         gluSphere(quad, 100, 50, 50);
         glPopMatrix();
 
-        //--------------------------------------------
         size_t face_i = 0;
         for (auto dataFace : map) {
             glPushMatrix();
@@ -183,8 +173,6 @@ void drawScene() {
             glRotatef(-data.xAngle, 0.0f, 0.0f, 1.0f);
 
             glTranslatef(face_i ? 25 : -25, 0, 0);
-
-            face_i++;
 
             glRotatef(-90, 1.0f, 0.0f, 0.0f);
             glRotatef(90, 0.0f, 1.0f, 0.0f);
@@ -198,7 +186,9 @@ void drawScene() {
             glScalef(scale, scale, scale);
 
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, sdobnikovTextureId);
+            glBindTexture(GL_TEXTURE_2D, face_i ? goncharukTextureId : sdobnikovTextureId);
+
+            face_i++;
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
